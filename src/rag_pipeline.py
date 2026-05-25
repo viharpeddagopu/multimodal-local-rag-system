@@ -3,9 +3,7 @@ from src.retriever import Retriever
 from src.vlm import MoondreamVLM
 
 
-# =========================================================
 # RAG PIPELINE
-# =========================================================
 
 class RAGPipeline:
 
@@ -22,18 +20,14 @@ class RAGPipeline:
 
         self.vlm = vlm
 
-    # =====================================================
     # ASK QUESTION
-    # =====================================================
 
     def ask(
         self,
         query
     ):
 
-        # ---------------------------------------------
         # Retrieve relevant chunks
-        # ---------------------------------------------
 
         retrieval_results = self.retriever.retrieve(
             query
@@ -44,9 +38,7 @@ class RAGPipeline:
             for result in retrieval_results
         ]
 
-        # ---------------------------------------------
         # Visual grounding (optional)
-        # ---------------------------------------------
 
         visual_context = ""
 
@@ -74,18 +66,14 @@ class RAGPipeline:
                     f"VLM visual grounding failed: {e}"
                 )
 
-        # ---------------------------------------------
         # Generate final answer
-        # ---------------------------------------------
 
         answer = self.generator.generate(
             query=query + visual_context,
             retrieved_chunks=retrieved_chunks
         )
 
-        # ---------------------------------------------
         # Sources
-        # ---------------------------------------------
 
         sources = sorted(
             set(
@@ -94,9 +82,7 @@ class RAGPipeline:
             )
         )
 
-        # ---------------------------------------------
         # Final response
-        # ---------------------------------------------
 
         result = {
             "query": query,

@@ -7,9 +7,7 @@ from src.retriever import Retriever
 from src.config import FAISS_INDEX_DIR
 
 
-# =========================================================
 # LOAD TEST QUERIES
-# =========================================================
 
 with open(
     "evaluation/test_queries.json",
@@ -20,9 +18,7 @@ with open(
     test_queries = json.load(f)
 
 
-# =========================================================
 # LOAD RETRIEVER
-# =========================================================
 
 embedder = LocalEmbedder()
 
@@ -37,9 +33,7 @@ retriever = Retriever(
 )
 
 
-# =========================================================
 # EVALUATION
-# =========================================================
 
 results = []
 
@@ -89,7 +83,7 @@ for test in test_queries:
 
     results.append(result)
 
-    print("\n===================================")
+    print("\n")
 
     print(f"Query: {query}")
 
@@ -106,9 +100,7 @@ for test in test_queries:
     )
 
 
-# =========================================================
 # FINAL METRICS
-# =========================================================
 
 accuracy = (
     correct
@@ -130,9 +122,7 @@ summary = {
 }
 
 
-# =========================================================
 # SAVE RESULTS
-# =========================================================
 
 with open(
     "evaluation/results.json",
@@ -147,7 +137,7 @@ with open(
     )
 
 
-print("\n===================================")
+print("\n")
 
 print(
     f"Final Accuracy: "

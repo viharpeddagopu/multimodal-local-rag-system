@@ -20,9 +20,9 @@ from src.rag_pipeline import RAGPipeline
 from src.vlm import MoondreamVLM
 
 
-# =========================================================
+
 # PAGE CONFIG
-# =========================================================
+
 
 st.set_page_config(
     page_title="Multimodal Local RAG",
@@ -32,9 +32,9 @@ st.set_page_config(
 st.title("Multimodal Local RAG System")
 
 
-# =========================================================
+
 # SIDEBAR
-# =========================================================
+
 
 st.sidebar.title("Indexed Papers")
 
@@ -45,30 +45,26 @@ for pdf in pdf_files:
     st.sidebar.markdown(f"- {pdf.name}")
 
 
-# =========================================================
+
 # LOAD PIPELINE
-# =========================================================
+
 
 @st.cache_resource
 def load_pipeline():
 
-    # ---------------------------------------------
+   
     # Embedding model
-    # ---------------------------------------------
 
     embedder = LocalEmbedder()
 
-    # ---------------------------------------------
+
     # Load FAISS index
-    # ---------------------------------------------
 
     vector_store = FaissStore.load(
         FAISS_INDEX_DIR
     )
 
-    # ---------------------------------------------
     # Retriever
-    # ---------------------------------------------
 
     retriever = Retriever(
         vector_store=vector_store,
@@ -76,21 +72,15 @@ def load_pipeline():
         use_reranker=True
     )
 
-    # ---------------------------------------------
     # Generator
-    # ---------------------------------------------
 
     generator = QwenGenerator()
 
-    # ---------------------------------------------
     # Vision Language Model
-    # ---------------------------------------------
 
     vlm = None # device constraints
 
-    # ---------------------------------------------
     # RAG Pipeline
-    # ---------------------------------------------
 
     rag_pipeline = RAGPipeline(
         retriever=retriever,
@@ -101,27 +91,21 @@ def load_pipeline():
     return rag_pipeline
 
 
-# =========================================================
 # INITIALIZE PIPELINE
-# =========================================================
 
 with st.spinner("Loading models and vector database..."):
 
     pipeline = load_pipeline()
 
 
-# =========================================================
 # QUESTION INPUT
-# =========================================================
 
 query = st.text_input(
     "Ask a question about the papers:"
 )
 
 
-# =========================================================
 # GENERATE RESPONSE
-# =========================================================
 
 if query:
 
@@ -129,17 +113,13 @@ if query:
 
         result = pipeline.ask(query)
 
-    # =====================================================
     # ANSWER
-    # =====================================================
 
     st.subheader("Answer")
 
     st.write(result["answer"])
 
-    # =====================================================
     # VISUAL GROUNDING
-    # =====================================================
 
     if result["visual_context"]:
 
@@ -147,9 +127,7 @@ if query:
 
         st.info(result["visual_context"])
 
-    # =====================================================
     # SOURCES
-    # =====================================================
 
     st.subheader("Sources")
 
@@ -157,9 +135,7 @@ if query:
 
         st.write(f"- {source}")
 
-    # =====================================================
     # RETRIEVED CHUNKS
-    # =====================================================
 
     st.subheader("Retrieved Chunks")
 
@@ -173,9 +149,7 @@ if query:
             f"{chunk.document} - Page {chunk.page}"
         ):
 
-            # -----------------------------------------
             # Scores
-            # -----------------------------------------
 
             st.caption(
                 f"Dense Score: "
@@ -189,15 +163,11 @@ if query:
                     f"{retrieval['rerank_score']:.4f}"
                 )
 
-            # -----------------------------------------
             # Chunk Text
-            # -----------------------------------------
 
             st.write(chunk.text)
 
-            # -----------------------------------------
             # Page Image
-            # -----------------------------------------
 
             if chunk.image_path.exists():
 

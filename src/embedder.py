@@ -5,18 +5,14 @@ from sentence_transformers import SentenceTransformer
 from src.config import EMBEDDING_MODEL
 
 
-# =========================================================
 # BGE QUERY PREFIX
-# =========================================================
 
 BGE_QUERY_PREFIX = (
     "Represent this sentence for searching relevant passages: "
 )
 
 
-# =========================================================
 # EMBEDDING MODEL
-# =========================================================
 
 class LocalEmbedder:
 
@@ -31,9 +27,7 @@ class LocalEmbedder:
 
         return self.model.get_embedding_dimension()
 
-    # =====================================================
     # DOCUMENT EMBEDDINGS
-    # =====================================================
 
     def encode_documents(
         self,
@@ -50,9 +44,7 @@ class LocalEmbedder:
 
         return embeddings.astype("float32")
 
-    # =====================================================
     # QUERY EMBEDDINGS
-    # =====================================================
 
     def encode_query(self, query):
 

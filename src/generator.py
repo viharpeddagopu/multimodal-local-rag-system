@@ -11,9 +11,7 @@ from src.config import (
 )
 
 
-# =========================================================
 # PROMPT BUILDER
-# =========================================================
 
 def build_prompt(
     query,
@@ -44,9 +42,7 @@ Answer clearly and concisely using ONLY the provided context.
     return prompt
 
 
-# =========================================================
 # QWEN GENERATOR
-# =========================================================
 
 class QwenGenerator:
 
@@ -67,9 +63,7 @@ class QwenGenerator:
             device_map="auto"
         )
 
-    # =====================================================
     # GENERATE
-    # =====================================================
 
     def generate(
         self,

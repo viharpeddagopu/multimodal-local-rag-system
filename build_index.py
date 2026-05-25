@@ -12,9 +12,7 @@ from src.vector_store import FaissStore
 
 
 
-# =========================================================
 # LOAD PDF FILES
-# =========================================================
 
 pdf_paths = list(
     Path(PAPERS_DIR).glob("*.pdf")
@@ -23,27 +21,21 @@ pdf_paths = list(
 print(f"Found {len(pdf_paths)} PDFs")
 
 
-# =========================================================
 # DOCUMENT PROCESSING
-# =========================================================
 
 pages = extract_pdf_text(pdf_paths)
 
 print(f"Extracted {len(pages)} pages")
 
 
-# =========================================================
 # CHUNKING
-# =========================================================
 
 chunks = create_chunks(pages)
 
 print(f"Created {len(chunks)} chunks")
 
 
-# =========================================================
 # EMBEDDINGS
-# =========================================================
 
 embedder = LocalEmbedder()
 
@@ -59,9 +51,7 @@ embeddings = embedder.encode_documents(
 print("Embeddings created")
 
 
-# =========================================================
 # FAISS INDEX
-# =========================================================
 
 vector_store = FaissStore(
     dimension=embedder.dimension,

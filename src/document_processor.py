@@ -7,9 +7,7 @@ from dataclasses import dataclass
 from src.config import PAGE_IMAGES_DIR
 
 
-# =========================================================
 # PAGE DATA STRUCTURE
-# =========================================================
 
 @dataclass
 class PageRecord:
@@ -19,9 +17,7 @@ class PageRecord:
     image_path: Path
 
 
-# =========================================================
 # TEXT CLEANING
-# =========================================================
 
 HYPHEN_PATTERN = re.compile(r"(\w)-\s*\n\s*(\w)")
 MULTIPLE_NEWLINES = re.compile(r"\n{3,}")
@@ -36,9 +32,7 @@ def clean_text(text):
     return text.strip()
 
 
-# =========================================================
 # PDF PROCESSING
-# =========================================================
 
 def extract_pdf_text(
     pdf_paths,
@@ -53,9 +47,7 @@ def extract_pdf_text(
 
         document_name = pdf_path.name
 
-        # ---------------------------------------------
         # Create image folder for this document
-        # ---------------------------------------------
 
         document_image_dir = (
             PAGE_IMAGES_DIR / document_name
@@ -68,9 +60,7 @@ def extract_pdf_text(
 
         for page_num, page in enumerate(doc):
 
-            # -----------------------------------------
             # Better reading-order extraction
-            # -----------------------------------------
 
             blocks = page.get_text("blocks")
 
@@ -90,9 +80,7 @@ def extract_pdf_text(
 
             cleaned_text = clean_text(raw_text)
 
-            # -----------------------------------------
             # Render page image
-            # -----------------------------------------
 
             pix = page.get_pixmap(
                 dpi=render_dpi,
@@ -106,9 +94,7 @@ def extract_pdf_text(
 
             pix.save(str(image_path))
 
-            # -----------------------------------------
             # Store page record
-            # -----------------------------------------
 
             pages.append(
                 PageRecord(

@@ -5,9 +5,7 @@ from src.embedder import LocalEmbedder
 from src.vector_store import FaissStore
 
 
-# =========================================================
 # RETRIEVER
-# =========================================================
 
 class Retriever:
 
@@ -33,9 +31,7 @@ class Retriever:
                 reranker_model
             )
 
-    # =====================================================
     # RETRIEVE
-    # =====================================================
 
     def retrieve(
         self,
@@ -43,26 +39,20 @@ class Retriever:
         top_k=TOP_K
     ):
 
-        # ---------------------------------------------
         # Query embedding
-        # ---------------------------------------------
 
         query_embedding = self.embedder.encode_query(
             query
         )
 
-        # ---------------------------------------------
         # Dense retrieval
-        # ---------------------------------------------
 
         retrieved = self.vector_store.search(
             query_embedding,
             top_k=top_k * 3
         )
 
-        # ---------------------------------------------
         # Optional reranking
-        # ---------------------------------------------
 
         if self.use_reranker and self.reranker:
 
@@ -95,9 +85,7 @@ class Retriever:
 
             return reranked[:top_k]
 
-        # ---------------------------------------------
         # Without reranking
-        # ---------------------------------------------
 
         results = []
 

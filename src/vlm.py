@@ -8,9 +8,7 @@ from transformers import (
 )
 
 
-# =========================================================
 # MOONDREAM VLM
-# =========================================================
 
 class MoondreamVLM:
 
@@ -20,9 +18,7 @@ class MoondreamVLM:
         revision="2025-06-21"
     ):
 
-        # ---------------------------------------------
         # Load model safely on CPU
-        # ---------------------------------------------
 
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
@@ -33,9 +29,7 @@ class MoondreamVLM:
 
         self.model.eval()
 
-        # ---------------------------------------------
         # Optional tokenizer
-        # ---------------------------------------------
 
         try:
 
@@ -50,9 +44,7 @@ class MoondreamVLM:
 
             self.tokenizer = None
 
-    # =====================================================
     # VISUAL QUESTION ANSWERING
-    # =====================================================
 
     @torch.inference_mode()
     def answer_visual_question(
@@ -68,9 +60,7 @@ class MoondreamVLM:
             question
         )
 
-        # ---------------------------------------------
         # Handle different output formats
-        # ---------------------------------------------
 
         if isinstance(result, dict):
 
