@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+.venv/
+
+# FAISS Index
+data/faiss_index/
+
+# Rendered Images
+data/page_images/
+
+# HuggingFace / Model Cache
+.cache/
+hf_cache/
+huggingface/
+
+# VSCode
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db

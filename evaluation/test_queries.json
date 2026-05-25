@@ -1,0 +1,26 @@
+[
+  {
+    "query": "What is attention?",
+    "expected_document": "NIPS-2017-attention-is-all-you-need-Paper.pdf"
+  },
+  {
+    "query": "What is self-attention?",
+    "expected_document": "NIPS-2017-attention-is-all-you-need-Paper.pdf"
+  },
+  {
+    "query": "What is BERT?",
+    "expected_document": "N19-1423.pdf"
+  },
+  {
+    "query": "What is masked language modeling?",
+    "expected_document": "N19-1423.pdf"
+  },
+  {
+  "query": "How does the transformer remove recurrence?",
+  "expected_document": "NIPS-2017-attention-is-all-you-need-Paper.pdf"
+  },
+  {
+  "query": "What is bidirectional pretraining?",
+  "expected_document": "N19-1423.pdf"
+  }
+]
