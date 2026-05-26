@@ -11,14 +11,16 @@ The goal of this project was to build a fully local Retrieval-Augmented Generati
 
 The system processes PDF papers, extracts and chunks text, generates embeddings locally, stores them inside a FAISS vector database, retrieves relevant chunks during querying, reranks them for better relevance, and generates grounded answers using a local language model.
 
-The architecture also supports optional multimodal grounding through a Vision Language Model (VLM), where rendered PDF page images can be linked to retrieved chunks for visual context understanding.
+The architecture also supports multimodal grounding through a Vision Language Model (VLM), where rendered PDF page images can be linked to retrieved chunks for visual context understanding.
 
 The project was designed with a strong focus on:
+
 - modularity
 - local inference
 - explainability
 - retrieval quality
 - maintainable architecture
+- multimodal extensibility
 
 ---
 
@@ -28,11 +30,6 @@ The system was tested using publicly available machine learning papers:
 
 - Attention Is All You Need
 - BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding
-
-These papers were selected because they:
-- belong to similar technical domains
-- contain semantically rich concepts
-- are suitable for retrieval-based evaluation
 
 ---
 
@@ -53,11 +50,17 @@ FAISS Vector Database
     ↓
 Retriever
     ↓
-Reranker
+Cross-Encoder Reranker
     ↓
-Local LLM / Optional VLM
+Adaptive Routing
+    ├── Text Query → Qwen
+    └── Visual Query
+            ↓
+      Moondream2 Visual Grounding
+            ↓
+            Qwen
     ↓
-Generated Answer
+Answer Generation
 ```
 
 ---
@@ -67,6 +70,7 @@ Generated Answer
 One major design choice was building the project using separate modules instead of a single large script.
 
 Different responsibilities were separated into independent files:
+
 - PDF processing
 - chunking
 - embeddings
@@ -74,8 +78,10 @@ Different responsibilities were separated into independent files:
 - reranking
 - generation
 - vector storage
+- visual grounding
 
 This improved:
+
 - readability
 - debugging
 - maintainability
@@ -90,12 +96,14 @@ One important thing learned during this project was how useful proper project st
 The entire system runs locally without paid APIs.
 
 Reasoning:
+
 - lower operational cost
 - better privacy
 - full control over models
 - understanding local AI deployment challenges
 
 Smaller local models were intentionally selected to balance:
+
 - inference quality
 - memory usage
 - hardware limitations
@@ -105,50 +113,102 @@ Smaller local models were intentionally selected to balance:
 ## 3.3 Choice of Qwen and Moondream
 
 The system uses:
-- Qwen for text generation
-- Moondream2 for optional visual grounding
 
-Instead of using only a VLM for the entire pipeline, a hybrid architecture was chosen.
+- Qwen2.5-1.5B-Instruct for text reasoning and answer generation
+- Moondream2 for visual grounding
 
-### Why Qwen for Text Generation
+Initially, I explored using a single VLM-based architecture for the entire pipeline. However, during experimentation I observed that smaller VLMs are optimized primarily for visual understanding rather than strong long-context textual reasoning.
 
-Qwen was selected because:
-- it provides stronger text reasoning performance
-- generates faster responses for text-only queries
-- consumes fewer resources compared to running a VLM continuously
-- works well for retrieval-grounded generation
+A VLM with around 2B parameters dedicates a significant portion of its capacity toward:
 
-Most user queries over research papers are primarily text-based, so using a dedicated text LLM was more efficient and practical.
+- image encoding
+- visual feature alignment
+- multimodal attention
+- image-text fusion
 
-### Why Moondream for Visual Grounding
+As a result, using a small VLM alone for both:
 
-Moondream2 was selected because:
-- it is relatively lightweight compared to larger VLMs
-- supports image-based reasoning
-- can process rendered PDF page images
-- enables future support for diagrams, equations, and figures
+- image understanding
+- final long-form textual reasoning
 
-### Why Not Use Only a VLM
+produced weaker performance compared to combining:
 
-Using only a VLM for every query would:
-- increase inference latency significantly
-- consume much more memory
-- create high CPU/GPU usage even for simple text questions
+- a dedicated text LLM
+- with a specialized VLM
 
-Because of this, a hybrid design was chosen:
-- Qwen handles normal text generation
-- Moondream can optionally provide visual grounding when needed
+Because of this, I implemented a hybrid multimodal architecture:
 
-This produced a better balance between:
-- performance
-- resource usage
-- multimodal capability
+- Moondream2 performs visual grounding
+- Qwen performs the final grounded answer generation
+
+The pipeline works as follows:
+
+1. Relevant chunks are retrieved from FAISS
+2. Associated rendered PDF page images are preserved
+3. For visual queries, Moondream analyzes the page image
+4. Visual understanding is extracted from figures and diagrams
+5. The extracted visual context is appended to the retrieved textual context
+6. Qwen generates the final grounded response
+
+This architecture produced significantly better:
+
+- textual reasoning
+- retrieval grounding
+- response quality
+- runtime efficiency
+
+compared to using only a small VLM for the entire pipeline.
 
 ---
 
-## 3.4 FAISS for Retrieval
+## 3.4 Adaptive Hybrid Multimodal Routing
+
+After implementing the hybrid architecture, another important issue became apparent during testing.
+
+Running the VLM for every query caused:
+
+- unnecessary multimodal inference
+- high CPU/GPU utilization
+- increased memory consumption
+- much slower response times
+
+However, many user queries were purely textual and did not require image understanding.
+
+Because of this, I redesigned the pipeline into an adaptive hybrid multimodal architecture.
+
+The system now selectively invokes the VLM only for visually-oriented queries containing concepts such as:
+
+- figures
+- diagrams
+- charts
+- tables
+- visual architectures
+
+Text-only queries bypass the VLM entirely and use:
+
+- retrieval
+- reranking
+- Qwen generation
+
+This significantly improved:
+
+- responsiveness
+- runtime efficiency
+- resource utilization
+
+while still preserving multimodal capability for visual questions.
+
+This became one of the most important architectural improvements in the project because it balanced:
+
+- multimodal capability
+- practical usability on consumer hardware
+
+---
+
+## 3.5 FAISS for Retrieval
 
 FAISS was used as the vector database because:
+
 - it is lightweight
 - optimized for similarity search
 - efficient for local semantic retrieval
@@ -158,7 +218,43 @@ Embeddings are stored locally so the index does not need to be rebuilt on every 
 
 ---
 
-## 3.5 Retrieval + Reranking
+## 3.6 Preprocessing and Ingestion Design
+
+Another important design choice was separating:
+
+- document ingestion
+- from query-time inference
+
+During preprocessing:
+
+- PDFs are extracted
+- pages are rendered into images
+- chunks are generated
+- embeddings are created
+- FAISS indexes are built
+- metadata is stored locally
+
+This preprocessing happens only once during index construction.
+
+At query time, the system only:
+
+- loads the already-built index
+- retrieves embeddings
+- performs reranking
+- generates answers
+
+This significantly improved runtime efficiency because expensive preprocessing operations do not need to repeat for every query.
+
+Separating ingestion from querying made the system:
+
+- faster
+- cleaner architecturally
+- more scalable
+- easier to debug
+
+---
+
+## 3.7 Retrieval + Reranking
 
 The retrieval pipeline was designed in two stages:
 
@@ -171,28 +267,11 @@ FAISS retrieves semantically similar chunks using embeddings.
 A reranker model reorders retrieved chunks based on relevance to the query.
 
 This improved answer grounding significantly because:
+
 - dense retrieval provides fast semantic recall
 - reranking improves precision
 
 The reranked chunks consistently produced better final answers compared to retrieval alone.
-
----
-
-## 3.6 Multimodal Support
-
-The architecture supports optional multimodal reasoning through Moondream2.
-
-PDF pages are rendered into images during ingestion and linked to retrieved chunks.
-
-This enables future visual grounding using:
-- diagrams
-- equations
-- figures
-- page layouts
-
-However, live VLM inference was disabled by default because of high latency on CPU-only systems.
-
-This was an intentional engineering tradeoff to maintain responsiveness.
 
 ---
 
@@ -204,18 +283,22 @@ Several parts of the system worked well during testing:
 - reranking noticeably improved relevance
 - modular architecture simplified debugging
 - local inference removed dependency on external APIs
+- adaptive multimodal routing reduced unnecessary VLM inference
 - retrieved chunk visualization improved explainability
 - FAISS indexing reduced repeated computation overhead
+- hybrid LLM + VLM design improved answer quality
 
 The retriever consistently identified the correct paper and relevant pages for technical queries.
+
+The adaptive hybrid architecture also improved practical usability significantly compared to always running the VLM.
 
 ---
 
 # 5. Problems Faced During Development
 
-## 5.1 Hardware Limitations
+## 5.1 Hardware Limitations and Local Multimodal Inference
 
-One major challenge was running local VLMs on limited hardware.
+One major challenge was running local multimodal models on consumer hardware.
 
 System configuration:
 
@@ -225,24 +308,44 @@ System configuration:
 | GPU | NVIDIA RTX 2050 |
 | VRAM | 4 GB |
 
-Because of limited VRAM and memory:
-- larger VLMs became difficult to run
-- model loading was slow
-- inference latency increased significantly
-- RAM usage became very high during multimodal inference
+Initially, running only the Qwen text LLM worked relatively well.
 
-Some larger models could not run efficiently on the available hardware.
+However, after integrating Moondream2 visual grounding into the pipeline, the system became significantly slower during multimodal inference.
+
+I observed:
+
+- very high CPU usage
+- large memory consumption
+- long response times
+- occasional inference stalls during VLM execution
+
+This helped me understand an important practical limitation of fully local multimodal AI systems:
+
+multimodal inference is substantially more computationally expensive than text-only inference.
+
+The issue became more apparent on consumer-grade hardware with limited VRAM and memory capacity.
+
+This challenge directly influenced several architectural decisions:
+
+- hybrid LLM + VLM design
+- adaptive multimodal routing
+- optional VLM invocation
+- preprocessing optimizations
+
+These changes were implemented specifically to reduce unnecessary multimodal computation while preserving multimodal capability.
 
 ---
 
 ## 5.2 Moondream and Transformers Compatibility Issues
 
 Several compatibility issues occurred between:
+
 - transformers versions
 - Moondream
 - dependency packages
 
 These caused:
+
 - import errors
 - model loading issues
 - inference failures
@@ -256,22 +359,58 @@ This required debugging dependency versions and adjusting model-loading configur
 Visual-language inference was significantly more computationally expensive than text-only inference.
 
 Passing images into the VLM caused:
+
 - high CPU usage
 - long response times
 - increased memory consumption
 
-As a result, multimodal inference was kept optional instead of running on every query.
+As a result, multimodal inference was redesigned into an adaptive system instead of running on every query.
+
+This became an important optimization for practical usability.
 
 ---
 
 ## 5.4 Serialization and Metadata Issues
 
 While storing chunk metadata alongside the FAISS index, issues occurred involving:
+
 - JSON serialization
 - WindowsPath objects
 - metadata persistence
 
 This required restructuring how metadata was saved and loaded.
+
+---
+
+## 5.5 Environment and Dependency Issues
+
+Another challenge involved managing Python environments and dependency compatibility.
+
+During development, several issues occurred involving:
+
+- virtual environments
+- Conda conflicts
+- PyTorch compatibility
+- transformers versions
+- PyMuPDF installation
+- local package resolution
+
+These environment inconsistencies occasionally caused:
+
+- import failures
+- dependency conflicts
+- model-loading issues
+
+To improve reproducibility and simplify setup, Docker support was added to the project.
+
+Docker helped provide:
+
+- isolated environments
+- dependency consistency
+- reproducible builds
+- simpler deployment
+
+This also reduced the likelihood of “works on my machine” issues during project execution on different systems.
 
 ---
 
@@ -289,12 +428,19 @@ This project helped me understand several important engineering concepts:
 - local inference optimization
 - multimodal AI pipelines
 - VLM integration
+- adaptive multimodal routing
 - dependency debugging
+- Docker-based reproducibility
 - hardware-aware AI engineering
 
 One major takeaway was understanding how important modularity and clean architecture are when building larger AI systems.
 
-Another important learning was realizing how expensive multimodal inference can become on consumer hardware, and how engineering tradeoffs are necessary to balance performance and usability.
+Another important learning was realizing how expensive multimodal inference can become on consumer hardware, and how engineering tradeoffs are necessary to balance:
+
+- performance
+- usability
+- latency
+- hardware limitations
 
 ---
 
@@ -309,57 +455,103 @@ The system was evaluated using manually created technical queries:
 4. What is masked language modeling?
 5. How does the transformer remove recurrence?
 6. What is bidirectional pretraining?
+7. What does Figure 2 show?
 ```
 
 For each query:
+
 1. the retriever searched the FAISS database
-2. the top retrieved chunk was analyzed
-3. the predicted source document was compared against the expected document
+2. retrieved chunks were inspected
+3. reranked results were evaluated
+4. generated responses were analyzed
+5. source grounding was verified manually
+
+For visual queries:
+
+- rendered page images were inspected
+- VLM routing activation was verified
+- visual grounding quality was evaluated manually
 
 The evaluation focused primarily on:
+
 - retrieval correctness
 - semantic relevance
 - grounded answer generation
+- multimodal routing correctness
+- visual grounding integration
 
 ---
 
 # 8. Evaluation Results
 
-The retriever achieved:
+The retriever achieved strong semantic retrieval quality across all tested queries.
 
-```text
-Accuracy: 100%
-Correct Predictions: 6/6
-```
+Observed results:
 
-The evaluation demonstrated that:
-- semantic retrieval was functioning correctly
-- the retriever consistently identified the correct source paper
-- reranking improved relevance of retrieved chunks
-- the generated answers remained grounded in retrieved context
+- correct paper retrieval for all test queries
+- relevant chunk grounding
+- improved retrieval precision after reranking
+- successful adaptive VLM routing
+- successful visual grounding integration
+- grounded answer generation using retrieved context
 
 More difficult semantic queries such as:
+
 - “How does the transformer remove recurrence?”
 - “What is bidirectional pretraining?”
 
 were also retrieved correctly, indicating that the system was performing semantic retrieval rather than simple keyword matching.
 
+Visual grounding queries involving figures and diagrams successfully activated the VLM pipeline and appended visual context into the final generation workflow.
+
+The evaluation demonstrated that:
+
+- semantic retrieval was functioning correctly
+- reranking improved relevance significantly
+- adaptive routing reduced unnecessary multimodal computation
+- the generated answers remained grounded in retrieved context
+
 ---
 
 # 9. Conclusion
 
-This project successfully implemented a fully local multimodal-ready RAG pipeline using:
+This project successfully implemented a fully local adaptive hybrid multimodal RAG pipeline using:
+
 - semantic retrieval
 - reranking
 - FAISS vector search
 - local language models
-- optional visual grounding
+- visual grounding
+- adaptive multimodal routing
+
+The final architecture combines:
+
+- Qwen for textual reasoning
+- Moondream2 for visual understanding
+
+while selectively invoking multimodal inference only when required.
 
 The project provided practical experience in:
-- AI system design
-- retrieval engineering
-- multimodal inference
-- debugging local AI pipelines
-- optimizing systems under hardware constraints
 
-The final system achieved strong retrieval quality while maintaining a modular and explainable architecture.
+- retrieval engineering
+- multimodal AI systems
+- local inference optimization
+- system design tradeoffs
+- dependency management
+- Docker-based reproducibility
+- hardware-aware AI engineering
+
+One of the biggest lessons learned during this project was understanding the practical tradeoffs between:
+
+- multimodal capability
+- inference latency
+- hardware constraints
+- architectural efficiency
+
+The final system achieved strong retrieval quality while maintaining:
+
+- explainability
+- modularity
+- local execution
+- scalable architecture
+- multimodal extensibility
