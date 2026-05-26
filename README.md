@@ -188,6 +188,8 @@ cd multimodal-local-rag-system
 
 ## 2. Create Virtual Environment
 
+It is strongly recommended to use a clean virtual environment to avoid dependency conflicts with existing global or Conda-installed packages.
+
 ```bash
 python -m venv .venv
 ```
@@ -211,9 +213,9 @@ source .venv/bin/activate
 ## 3. Install Dependencies
 
 ```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
-
 ---
 
 # Add Research Papers
