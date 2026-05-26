@@ -248,7 +248,7 @@ This step:
 # Run Application
 
 ```bash
-streamlit run app/streamlit_app.py
+streamlit run app/streamlit_app.py --server.fileWatcherType none
 ```
 
 ---
