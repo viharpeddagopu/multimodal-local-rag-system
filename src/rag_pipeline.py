@@ -20,6 +20,33 @@ class RAGPipeline:
 
         self.vlm = vlm
 
+    # CHECK IF QUERY NEEDS VISUAL GROUNDING
+
+    def needs_visual_grounding(
+        self,
+        query
+    ):
+
+        visual_keywords = [
+            "figure",
+            "diagram",
+            "image",
+            "architecture",
+            "chart",
+            "graph",
+            "table",
+            "visual",
+            "shown",
+            "illustration"
+        ]
+
+        query_lower = query.lower()
+
+        return any(
+            keyword in query_lower
+            for keyword in visual_keywords
+        )
+
     # ASK QUESTION
 
     def ask(
@@ -27,7 +54,7 @@ class RAGPipeline:
         query
     ):
 
-        # Retrieve relevant chunks
+        # RETRIEVE RELEVANT CHUNKS
 
         retrieval_results = self.retriever.retrieve(
             query
@@ -38,15 +65,30 @@ class RAGPipeline:
             for result in retrieval_results
         ]
 
-        # Visual grounding (optional)
+        # VISUAL GROUNDING
 
         visual_context = ""
 
-        if self.vlm and retrieved_chunks:
+        needs_visual = (
+            self.needs_visual_grounding(query)
+        )
+
+        if (
+            self.vlm
+            and retrieved_chunks
+            and needs_visual
+        ):
+
+            print(
+                "\n=== RUNNING VLM VISUAL GROUNDING ==="
+            )
 
             top_chunk = retrieved_chunks[0]
 
             try:
+
+                # IMPORTANT:
+                # CALLING INSTANCE METHOD CORRECTLY
 
                 visual_answer = (
                     self.vlm.answer_visual_question(
@@ -60,20 +102,37 @@ class RAGPipeline:
                     f"{visual_answer}"
                 )
 
+                print("\n=== VISUAL CONTEXT ===")
+                print(visual_context)
+
             except Exception as e:
 
                 print(
                     f"VLM visual grounding failed: {e}"
                 )
 
-        # Generate final answer
+        else:
+
+            print(
+                "\n=== SKIPPING VLM "
+                "(TEXT-ONLY QUERY) ==="
+            )
+
+        # FINAL QUERY
+
+        final_query = query + visual_context
+
+        print("\n=== FINAL QUERY TO QWEN ===")
+        print(final_query)
+
+        # GENERATE FINAL ANSWER
 
         answer = self.generator.generate(
-            query=query + visual_context,
+            query=final_query,
             retrieved_chunks=retrieved_chunks
         )
 
-        # Sources
+        # SOURCES
 
         sources = sorted(
             set(
@@ -82,7 +141,7 @@ class RAGPipeline:
             )
         )
 
-        # Final response
+        # FINAL RESPONSE
 
         result = {
             "query": query,
@@ -90,40 +149,8 @@ class RAGPipeline:
             "sources": sources,
             "retrieved_chunks": retrieved_chunks,
             "retrieval_results": retrieval_results,
-            "visual_context": visual_context
+            "visual_context": visual_context,
+            "used_vlm": needs_visual
         }
 
         return result
-    
-
-# =========================================================
-# HYBRID QWEN + MOONDREAM ARCHITECTURE
-# =========================================================
-#
-# This system uses a collaborative hybrid architecture where
-# both Qwen and Moondream2 work together instead of replacing
-# one another.
-#
-# Workflow:
-#
-# User Query
-# ↓
-# Retriever fetches relevant text chunks
-# ↓
-# Moondream2 receives:
-# - rendered PDF page image
-# - user query
-# ↓
-# Moondream2 extracts visual understanding from the page
-# (figures, diagrams, equations, layouts, visual structure)
-# ↓
-# The visual understanding is converted into textual context
-# ↓
-# The visual context is appended to the original query
-# ↓
-# Qwen receives:
-# - retrieved chunks
-# - original query
-# - visual context extracted by Moondream2
-# ↓
-# Qwen generates the final grounded answer

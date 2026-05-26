@@ -18,7 +18,7 @@ class MoondreamVLM:
         revision="2025-06-21"
     ):
 
-        # Load model safely on CPU
+        # LOAD MODEL ON CPU
 
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
@@ -29,7 +29,7 @@ class MoondreamVLM:
 
         self.model.eval()
 
-        # Optional tokenizer
+        # OPTIONAL TOKENIZER
 
         try:
 
@@ -46,24 +46,28 @@ class MoondreamVLM:
 
     # VISUAL QUESTION ANSWERING
 
-    @torch.inference_mode()
     def answer_visual_question(
         self,
         image_path,
         question
     ):
 
-        image = Image.open(image_path).convert("RGB")
+        image = Image.open(
+            image_path
+        ).convert("RGB")
 
         result = self.model.query(
             image,
             question
         )
 
-        # Handle different output formats
+        # HANDLE DIFFERENT OUTPUT FORMATS
 
         if isinstance(result, dict):
 
-            return result.get("answer", "")
+            return result.get(
+                "answer",
+                ""
+            )
 
         return str(result)

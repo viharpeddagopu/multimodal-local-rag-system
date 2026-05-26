@@ -25,7 +25,13 @@ class LocalEmbedder:
     @property
     def dimension(self):
 
-        return self.model.get_embedding_dimension()
+        try:
+
+            return self.model.get_embedding_dimension()
+
+        except AttributeError:
+
+            return self.model.get_sentence_embedding_dimension()
 
     # DOCUMENT EMBEDDINGS
 
