@@ -180,7 +180,7 @@ Retrieved source chunks and corresponding pages are displayed in the UI for expl
 ## 1. Clone Repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/viharpeddagopu/multimodal-local-rag-system
 cd multimodal-local-rag
 ```
 
