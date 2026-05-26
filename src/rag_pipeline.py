@@ -94,3 +94,36 @@ class RAGPipeline:
         }
 
         return result
+    
+
+# =========================================================
+# HYBRID QWEN + MOONDREAM ARCHITECTURE
+# =========================================================
+#
+# This system uses a collaborative hybrid architecture where
+# both Qwen and Moondream2 work together instead of replacing
+# one another.
+#
+# Workflow:
+#
+# User Query
+# ↓
+# Retriever fetches relevant text chunks
+# ↓
+# Moondream2 receives:
+# - rendered PDF page image
+# - user query
+# ↓
+# Moondream2 extracts visual understanding from the page
+# (figures, diagrams, equations, layouts, visual structure)
+# ↓
+# The visual understanding is converted into textual context
+# ↓
+# The visual context is appended to the original query
+# ↓
+# Qwen receives:
+# - retrieved chunks
+# - original query
+# - visual context extracted by Moondream2
+# ↓
+# Qwen generates the final grounded answer
