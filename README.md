@@ -218,6 +218,8 @@ pip install -r requirements.txt
 
 # Add Research Papers
 
+2 papers are already added. To test and add new papers,
+
 Place PDF files inside:
 
 ```text
