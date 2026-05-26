@@ -275,9 +275,21 @@ Attention refers to a method used in neural networks to weigh input features bas
 
 ![Main Interface](assets/main_ui.png)
 
-## Retrieved Chunks and Source Grounding
+## Text Query Output
 
-![Retrieved Chunks](assets/retrieved_chunks.png)
+![Text Query Output](assets/text-query-output.png)
+
+## Retrieved Chunks - Text Query
+
+![Retrieved Chunks Text Query](assets/retrieved_chunks-text-query.png)
+
+## Visual Query Output (VLM Grounding)
+
+![Visual Query Output](assets/visual-query-output.png)
+
+## Retrieved Chunks - Visual Query
+
+![Retrieved Chunks Visual Query](assets/retrieved-chunks-visual-query.png)
 
 ---
 
