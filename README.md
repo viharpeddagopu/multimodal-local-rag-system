@@ -271,10 +271,6 @@ Attention refers to a method used in neural networks to weigh input features bas
 
 # Screenshots
 
-## Main Interface
-
-![Main Interface](assets/main_ui.png)
-
 ## Text Query Output
 
 ![Text Query Output](assets/text-query-output.png)
