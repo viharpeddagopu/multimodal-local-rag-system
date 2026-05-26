@@ -78,7 +78,7 @@ def load_pipeline():
 
     # Vision Language Model
 
-    vlm = None # device constraints
+    vlm = MoondreamVLM() # Visual inference may be slow on CPU-only systems due to VLM computational cost.
 
     # RAG Pipeline
 
