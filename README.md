@@ -181,7 +181,7 @@ Retrieved source chunks and corresponding pages are displayed in the UI for expl
 
 ```bash
 git clone https://github.com/viharpeddagopu/multimodal-local-rag-system
-cd multimodal-local-rag
+cd multimodal-local-rag-system
 ```
 
 ---
