@@ -166,7 +166,6 @@ compared to using only a small VLM for the entire pipeline.
 After implementing the hybrid architecture, another important issue became apparent during testing.
 
 Running the VLM for every query caused:
-
 - unnecessary multimodal inference
 - high CPU/GPU utilization
 - increased memory consumption
@@ -176,8 +175,7 @@ However, many user queries were purely textual and did not require image underst
 
 Because of this, I redesigned the pipeline into an adaptive hybrid multimodal architecture.
 
-The system now selectively invokes the VLM only for visually-oriented queries containing concepts such as:
-
+The system now selectively invokes the VLM only for visually-oriented queries containing keywords related to concepts such as:
 - figures
 - diagrams
 - charts
@@ -185,13 +183,11 @@ The system now selectively invokes the VLM only for visually-oriented queries co
 - visual architectures
 
 Text-only queries bypass the VLM entirely and use:
-
 - retrieval
 - reranking
 - Qwen generation
 
 This significantly improved:
-
 - responsiveness
 - runtime efficiency
 - resource utilization
@@ -199,9 +195,12 @@ This significantly improved:
 while still preserving multimodal capability for visual questions.
 
 This became one of the most important architectural improvements in the project because it balanced:
-
 - multimodal capability
 - practical usability on consumer hardware
+
+The current implementation uses keyword-based routing for simplicity and efficiency.
+
+A better future implementation would involve semantic query understanding, where the system predicts whether a query requires visual grounding instead of relying only on explicit keywords.
 
 ---
 
