@@ -269,8 +269,6 @@ Retrieved source chunks and corresponding pages are displayed in the UI for expl
 
 # Quick Start (Recommended)
 
-The easiest way to run the project is using Docker.
-
 ## 1. Clone Repository
 
 ```bash
@@ -280,35 +278,7 @@ cd multimodal-local-rag-system
 
 ---
 
-## 2. Build Docker Image
-
-```bash
-docker build -t multimodal-rag .
-```
-
----
-
-## 3. Run Docker Container
-
-```bash
-docker run -p 8501:8501 multimodal-rag
-```
-
-Open:
-
-```text
-http://localhost:8501
-```
-
-Models are automatically downloaded from HuggingFace during first execution and are not packaged into the Docker image.
-
-Initial startup may take several minutes due to first-time model downloads and local model initialization.
-
----
-
-# Manual Local Setup
-
-## 1. Create Virtual Environment
+## 2. Create Virtual Environment
 
 It is strongly recommended to use a clean virtual environment to avoid dependency conflicts with existing global or Conda-installed packages.
 
@@ -332,7 +302,7 @@ source .venv/bin/activate
 
 ---
 
-## 2. Install Dependencies
+## 3. Install Dependencies
 
 ```bash
 pip install --upgrade pip
@@ -341,21 +311,65 @@ pip install -r requirements.txt
 
 ---
 
-## 3. Build FAISS Index
+## 4. Build FAISS Index
 
 ```bash
 python build_index.py
 ```
 
+This step:
+- extracts text
+- renders PDF page images
+- creates chunks
+- generates embeddings
+- builds the FAISS index
+- stores metadata locally
+
 ---
 
-## 4. Run Application
+## 5. Run Application
 
 ```bash
 streamlit run app/streamlit_app.py --server.fileWatcherType none
 ```
 
+Open:
+
+```text
+http://localhost:8501
+```
+
 The file watcher is disabled to avoid compatibility issues between Streamlit and PyTorch/transformer-based model loading on certain systems.
+
+Models are automatically downloaded from HuggingFace during first execution and are not packaged into the repository.
+
+Initial startup may take several minutes due to first-time model downloads and local model initialization.
+
+---
+
+# Optional Docker Setup
+
+Docker support is included for reproducible environments and dependency isolation.
+
+## Build Docker Image
+
+```bash
+docker build -t multimodal-rag .
+```
+
+---
+
+## Run Docker Container
+
+```bash
+docker run -p 8501:8501 multimodal-rag
+```
+
+Open:
+
+```text
+http://localhost:8501
+```
 
 ---
 
